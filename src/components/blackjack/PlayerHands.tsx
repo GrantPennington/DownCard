@@ -40,14 +40,27 @@ export function PlayerHands({ hands, activeHandIndex }: PlayerHandsProps) {
               )}
 
               {/* Cards */}
-              <div className="flex gap-2 sm:gap-3 lg:gap-4 xl:gap-5">
-                {hand.cards.map((card, cardIndex) => (
-                  <Card
-                    key={`hand-${handIndex}-card-${cardIndex}`}
-                    card={card}
-                    delay={cardIndex * 0.1 + handIndex * 0.05}
-                  />
-                ))}
+              <div className="flex">
+                {hand.cards.map((card, cardIndex) => {
+                  const cardCount = hand.cards.length;
+
+                  // Calculate stacking offset based on number of cards
+                  const getStackingClass = () => {
+                    if (cardIndex === 0) return '';
+                    if (cardCount <= 2) return '';
+                    if (cardCount <= 4) return '-ml-8 sm:-ml-10 lg:-ml-12 xl:-ml-16';
+                    return '-ml-12 sm:-ml-14 lg:-ml-16 xl:-ml-20';
+                  };
+
+                  return (
+                    <div key={`hand-${handIndex}-card-${cardIndex}`} className={getStackingClass()}>
+                      <Card
+                        card={card}
+                        delay={cardIndex * 0.1 + handIndex * 0.05}
+                      />
+                    </div>
+                  );
+                })}
               </div>
 
               {/* Total */}

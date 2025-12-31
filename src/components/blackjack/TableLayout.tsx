@@ -42,30 +42,34 @@ export function TableLayout() {
         )}
 
         {/* Main Table */}
-        <div className="bg-green-600/40 rounded-2xl border-4 border-amber-900 shadow-2xl p-4 sm:p-6 lg:p-10 xl:p-12">
-          {/* Dealer Hand */}
-          {roundState && (
-            <div className="mb-4 sm:mb-6 lg:mb-10 xl:mb-12">
-              <DealerHand dealer={roundState.dealer} />
-            </div>
-          )}
+        <div className="bg-green-600/40 rounded-2xl border-4 border-amber-900 shadow-2xl p-4 sm:p-6 lg:p-8 xl:p-10">
+          {/* Layout: Vertical on small screens, Horizontal on large screens */}
+          {roundState ? (
+            <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between lg:gap-8 xl:gap-12">
+              {/* Player Hands - Left side on large screens, top on small screens */}
+              <div className="mb-4 sm:mb-6 lg:mb-0 lg:flex-1 order-2 lg:order-1">
+                <PlayerHands
+                  hands={roundState.playerHands}
+                  activeHandIndex={roundState.activeHandIndex}
+                />
+              </div>
 
-          {/* Divider */}
-          {roundState && <div className="border-t-2 border-white/20 my-4 sm:my-6 lg:my-8 xl:my-10" />}
+              {/* Divider - Horizontal on small, Vertical on large */}
+              <div className="border-t-2 lg:border-t-0 lg:border-l-2 border-white/20 my-4 sm:my-6 lg:my-0 lg:self-stretch order-3 lg:order-2" />
 
-          {/* Player Hands */}
-          {roundState && (
-            <div className="mb-4 sm:mb-6 lg:mb-10 xl:mb-12">
-              <PlayerHands
-                hands={roundState.playerHands}
-                activeHandIndex={roundState.activeHandIndex}
-              />
+              {/* Dealer Hand - Right side on large screens, bottom on small screens */}
+              <div className="mb-4 sm:mb-6 lg:mb-0 lg:flex-1 order-1 lg:order-3">
+                <DealerHand dealer={roundState.dealer} />
+              </div>
             </div>
-          )}
+          ) : null}
+
+          {/* Controls Section - Always at bottom */}
+          {roundState && <div className="border-t-2 border-white/20 mt-4 sm:mt-6 lg:mt-8 xl:mt-10 mb-4 sm:mb-6 lg:mb-0" />}
 
           {/* Action Buttons - Inline */}
           {roundState?.phase === 'PLAYER_TURN' && (
-            <div className="mb-4 sm:mb-6 lg:mb-8 xl:mb-10">
+            <div className="mb-4 sm:mb-6 lg:mb-0">
               <ActionBar />
             </div>
           )}

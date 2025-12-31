@@ -8,10 +8,17 @@ export function ResultBanner() {
   const { roundState } = useBlackjackStore();
   const [isVisible, setIsVisible] = useState(false);
 
-  // Show banner when settlement phase starts
+  // Show banner with delay when settlement phase starts
   useEffect(() => {
     if (roundState?.phase === 'SETTLEMENT' && roundState.outcome) {
-      setIsVisible(true);
+      // Delay showing the banner to let players see the cards first
+      const timer = setTimeout(() => {
+        setIsVisible(true);
+      }, 1500); // 1.5 second delay
+
+      return () => clearTimeout(timer);
+    } else {
+      setIsVisible(false);
     }
   }, [roundState?.phase, roundState?.outcome]);
 

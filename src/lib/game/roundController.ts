@@ -40,10 +40,13 @@ export function deal(session: GameSession, betCents: number): RoundState {
   const { total: playerTotal, soft: playerSoft } = calculateHandTotal(playerCards);
   const playerBlackjack = isBlackjack(playerCards);
 
+  // Deduct bet from session bankroll immediately
+  session.bankrollCents -= betCents;
+
   // Create initial round state
   const roundState: RoundState = {
     phase: 'PLAYER_TURN',
-    bankrollCents: session.bankrollCents - betCents,
+    bankrollCents: session.bankrollCents,
     baseBetCents: betCents,
     dealer: {
       cards: dealerCards,
@@ -422,7 +425,13 @@ function finalizeDealerTurn(session: GameSession, roundState: RoundState): Round
   roundState.phase = 'SETTLEMENT';
 
   // Update bankroll
-  roundState.bankrollCents += outcome.netCents;
+  // Note: Bet was already deducted in deal(), so we add back the winnings
+  // For losses, netCents is negative (loses the bet)
+  // For wins, netCents is positive (wins equal to bet)
+  // For BJ, netCents is positive (wins 1.5x bet)
+  // We need to add back the original bet for wins/BJ, but not for losses
+  const totalBet = roundState.playerHands.reduce((sum, h) => sum + h.betCents, 0);
+  roundState.bankrollCents += outcome.netCents + totalBet;
   session.bankrollCents = roundState.bankrollCents;
 
   session.roundState = roundState;

@@ -42,16 +42,16 @@ export function BetControls() {
   };
 
   return (
-    <div className="flex flex-col items-center gap-3 lg:gap-4 xl:gap-5">
-      {/* Round Over Message */}
+    <div className="flex flex-col items-center gap-2 lg:gap-2.5 xl:gap-3">
+      {/* Round Over Message - Compact */}
       {roundState?.phase === 'SETTLEMENT' && (
-        <div className="text-base lg:text-lg xl:text-xl font-semibold text-yellow-300">
+        <div className="text-xs lg:text-sm xl:text-base font-normal text-yellow-300/90">
           Place your bet for the next hand
         </div>
       )}
 
       {/* Current Bet */}
-      <div className="text-lg lg:text-xl xl:text-2xl text-white font-semibold">
+      <div className="text-base lg:text-lg xl:text-xl text-white font-semibold">
         Bet: ${(currentBetCents / 100).toFixed(2)}
       </div>
 
