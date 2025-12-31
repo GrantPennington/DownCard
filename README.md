@@ -270,6 +270,28 @@ MAX_BET_CENTS=10000
 openssl rand -base64 32
 ```
 
+---
+
+## Keyboard Shortcuts
+
+The `/play` page supports the following keyboard shortcuts:
+
+**During Betting:**
+- **Space** - Deal (if bet is placed)
+- **R** - Rebet (use last bet amount)
+
+**During Player Turn:**
+- **H** - Hit
+- **S** - Stand
+- **D** - Double (if legal)
+- **P** - Split (if legal)
+- **U** - Surrender (if legal)
+- **I** - Insurance (if legal)
+
+All shortcuts only work when the action is legal and no request is in progress.
+
+---
+
 ## Development Phases
 
 ### Phase A ✅ - Scaffold + Types
@@ -288,11 +310,14 @@ openssl rand -base64 32
 - API routes: `/api/identity`, `/api/round/deal`, `/api/round/action`, `/api/round/state`
 - Server-authoritative game flow with validation
 
-### Phase D - UI
-- Table layout and components
-- Bet controls and action buttons
-- Keyboard shortcuts
-- Framer Motion animations
+### Phase D ✅ - UI
+- `/play` page with full table layout
+- Component library: DealerHand, PlayerHands, BetControls, ActionBar, ResultBanner
+- Zustand store for client state management
+- Keyboard shortcuts (H/S/D/P/Space/R)
+- Framer Motion animations (card dealing, result banner)
+- Refresh recovery (loads identity + round state on mount)
+- Responsive design (desktop + mobile)
 
 ### Phase E - Persistence (V1)
 - Prisma + Neon Postgres
