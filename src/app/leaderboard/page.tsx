@@ -26,8 +26,25 @@ const CATEGORIES: { key: Category; label: string; description: string }[] = [
 export default function LeaderboardPage() {
   const [category, setCategory] = useState<Category>('biggestWin');
   const [entries, setEntries] = useState<LeaderboardEntry[]>([]);
+  const [currentPlayerId, setCurrentPlayerId] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+
+  // Fetch current player ID on mount
+  useEffect(() => {
+    async function fetchPlayerId() {
+      try {
+        const res = await fetch('/api/identity', { method: 'POST' });
+        if (res.ok) {
+          const data = await res.json();
+          setCurrentPlayerId(data.playerId);
+        }
+      } catch {
+        // Silently fail - not critical for viewing leaderboard
+      }
+    }
+    fetchPlayerId();
+  }, []);
 
   useEffect(() => {
     async function fetchLeaderboard() {
@@ -122,37 +139,51 @@ export default function LeaderboardPage() {
                 </tr>
               </thead>
               <tbody>
-                {entries.map((entry) => (
-                  <tr
-                    key={entry.playerId}
-                    className="border-t border-gray-700 hover:bg-gray-750"
-                  >
-                    <td className="px-4 py-3">
-                      <span
-                        className={`inline-flex items-center justify-center w-8 h-8 rounded-full text-sm font-bold ${
-                          entry.rank === 1
-                            ? 'bg-yellow-500 text-black'
-                            : entry.rank === 2
-                            ? 'bg-gray-400 text-black'
-                            : entry.rank === 3
-                            ? 'bg-amber-600 text-white'
-                            : 'bg-gray-600 text-gray-300'
-                        }`}
-                      >
-                        {entry.rank}
-                      </span>
-                    </td>
-                    <td className="px-4 py-3 text-white font-medium">
-                      {entry.displayName}
-                    </td>
-                    <td className="px-4 py-3 text-right text-green-400 font-mono">
-                      {entry.formattedValue}
-                    </td>
-                    <td className="px-4 py-3 text-right text-gray-400 hidden sm:table-cell">
-                      {entry.handsPlayed.toLocaleString()}
-                    </td>
-                  </tr>
-                ))}
+                {entries.map((entry) => {
+                  const isMe = currentPlayerId && entry.playerId === currentPlayerId;
+                  return (
+                    <tr
+                      key={entry.playerId}
+                      className={`border-t border-gray-700 ${
+                        isMe
+                          ? 'bg-green-900/30 hover:bg-green-900/40'
+                          : 'hover:bg-gray-750'
+                      }`}
+                    >
+                      <td className="px-4 py-3">
+                        <span
+                          className={`inline-flex items-center justify-center w-8 h-8 rounded-full text-sm font-bold ${
+                            entry.rank === 1
+                              ? 'bg-yellow-500 text-black'
+                              : entry.rank === 2
+                              ? 'bg-gray-400 text-black'
+                              : entry.rank === 3
+                              ? 'bg-amber-600 text-white'
+                              : 'bg-gray-600 text-gray-300'
+                          }`}
+                        >
+                          {entry.rank}
+                        </span>
+                      </td>
+                      <td className="px-4 py-3 font-medium">
+                        <span className={isMe ? 'text-green-400' : 'text-white'}>
+                          {entry.displayName}
+                        </span>
+                        {isMe && (
+                          <span className="ml-2 px-2 py-0.5 bg-green-600 text-green-100 text-xs rounded">
+                            You
+                          </span>
+                        )}
+                      </td>
+                      <td className="px-4 py-3 text-right text-green-400 font-mono">
+                        {entry.formattedValue}
+                      </td>
+                      <td className="px-4 py-3 text-right text-gray-400 hidden sm:table-cell">
+                        {entry.handsPlayed.toLocaleString()}
+                      </td>
+                    </tr>
+                  );
+                })}
               </tbody>
             </table>
           )}

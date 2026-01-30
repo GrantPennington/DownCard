@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { LoadingSpinner } from '@/components/LoadingSpinner';
+import { formatPlayerId } from '@/lib/utils/formatPlayerId';
 
 type Stats = {
   bankrollCents: number;
@@ -30,6 +31,7 @@ type HistoryEntry = {
 export default function StatsPage() {
   const [stats, setStats] = useState<Stats | null>(null);
   const [history, setHistory] = useState<HistoryEntry[]>([]);
+  const [playerId, setPlayerId] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -41,6 +43,7 @@ export default function StatsPage() {
         const data = await res.json();
         setStats(data.stats);
         setHistory(data.history || []);
+        setPlayerId(data.playerId);
       } catch {
         setError('Failed to load stats');
       } finally {
@@ -78,7 +81,10 @@ export default function StatsPage() {
                 className="w-10 h-10 sm:w-12 sm:h-12"
               />
             </Link>
-            <h1 className="text-2xl sm:text-3xl font-bold text-white">Your Stats</h1>
+            <div>
+              <h1 className="text-2xl sm:text-3xl font-bold text-white">Your Stats</h1>
+              <div className="text-sm text-gray-400">{formatPlayerId(playerId)}</div>
+            </div>
           </div>
           <Link
             href="/play"

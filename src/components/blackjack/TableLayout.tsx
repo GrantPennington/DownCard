@@ -4,6 +4,7 @@ import { useState } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { useBlackjackStore } from '@/store/blackjackStore';
+import { formatPlayerId } from '@/lib/utils/formatPlayerId';
 import { DealerHand } from './DealerHand';
 import { PlayerHands } from './PlayerHands';
 import { BetControls } from './BetControls';
@@ -14,7 +15,7 @@ import { ResetConfirmModal } from './ResetConfirmModal';
 import { LoadingOverlay } from './LoadingOverlay';
 
 export function TableLayout() {
-  const { roundState, error, bankrollCents, clearError } = useBlackjackStore();
+  const { roundState, error, bankrollCents, playerId, clearError } = useBlackjackStore();
   const [showResetModal, setShowResetModal] = useState(false);
 
   return (
@@ -41,8 +42,13 @@ export function TableLayout() {
               </svg>
               <span className="hidden sm:inline">Restart</span>
             </button>
-            <div className="text-lg sm:text-xl md:text-2xl lg:text-3xl xl:text-4xl font-bold text-green-400">
-              ${(bankrollCents / 100).toFixed(2)}
+            <div className="flex flex-col sm:flex-row sm:items-baseline sm:gap-2 lg:gap-3">
+              <div className="text-lg sm:text-xl md:text-2xl lg:text-3xl xl:text-4xl font-bold text-green-400">
+                ${(bankrollCents / 100).toFixed(2)}
+              </div>
+              <div className="text-xs sm:text-sm lg:text-base text-gray-400">
+                {formatPlayerId(playerId)}
+              </div>
             </div>
           </div>
           {/* Hotkeys - hidden on mobile */}
