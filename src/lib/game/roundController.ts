@@ -9,7 +9,7 @@ import {
 import { getLegalActions } from '@/lib/engine/rules';
 import { playDealerHand } from '@/lib/engine/dealer';
 import { settleAllHands } from '@/lib/engine/settle';
-import { RoundState, Action, Card } from '@/lib/types';
+import { RoundState, Action, Card, PlayerHand } from '@/lib/types';
 
 /**
  * Deal a new round
@@ -262,12 +262,12 @@ function handleSplit(
   }
 
   // Second hand
-  const secondHand = {
+  const secondHand: PlayerHand = {
     cards: [card2, newCards[1]],
     total: 0,
     soft: false,
     betCents: hand.betCents,
-    status: 'ACTIVE' as const,
+    status: 'ACTIVE',
     isSplitAces,
   };
 

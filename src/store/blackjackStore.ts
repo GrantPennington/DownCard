@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 import { RoundState, Action, Rules } from '@/lib/types';
-import { postIdentity, postDeal, postAction, getRoundState } from '@/lib/api/blackjack';
+import { postIdentity, postDeal, postAction, getRoundState, postReset } from '@/lib/api/blackjack';
 
 export type UIPrefs = {
   soundEnabled: boolean;
@@ -40,6 +40,7 @@ export type BlackjackState = {
   setBet: (amount: number) => void;
   clearError: () => void;
   clearToast: () => void;
+  resetGame: () => Promise<void>;
 };
 
 const MIN_BET = 100;
@@ -215,5 +216,26 @@ export const useBlackjackStore = create<BlackjackState>((set, get) => ({
   // Clear toast
   clearToast: () => {
     set({ toast: null });
+  },
+
+  // Reset game to fresh state
+  resetGame: async () => {
+    set({ roundLoading: true, error: null });
+    try {
+      const data = await postReset();
+      set({
+        bankrollCents: data.bankrollCents,
+        rules: data.rules,
+        roundState: null,
+        currentBetCents: 0,
+        lastBetCents: 0,
+        roundLoading: false,
+      });
+    } catch (error) {
+      set({
+        error: error instanceof Error ? error.message : 'Failed to reset game',
+        roundLoading: false,
+      });
+    }
   },
 }));

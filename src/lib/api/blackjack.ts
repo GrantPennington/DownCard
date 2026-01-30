@@ -96,3 +96,28 @@ export async function getRoundState(): Promise<RoundStateResponse> {
 
   return response.json();
 }
+
+export type ResetResponse = {
+  bankrollCents: number;
+  rules: Rules;
+};
+
+/**
+ * POST /api/game/reset
+ * Reset game session to fresh state
+ */
+export async function postReset(): Promise<ResetResponse> {
+  const response = await fetch('/api/game/reset', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+  });
+
+  if (!response.ok) {
+    const error = await response.json().catch(() => ({ error: 'Failed to reset game' }));
+    throw new Error(error.error || 'Failed to reset game');
+  }
+
+  return response.json();
+}
