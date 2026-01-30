@@ -29,24 +29,46 @@ export async function getOrCreatePlayer(playerId: string): Promise<PlayerData> {
     };
   }
 
-  const player = await prisma.player.upsert({
+  const selectFields = {
+    id: true,
+    bankrollCents: true,
+    handsPlayed: true,
+    handsWon: true,
+    totalWagered: true,
+    biggestWin: true,
+  };
+
+  // Try to find existing player first
+  const existing = await prisma.player.findUnique({
     where: { id: playerId },
-    update: {},
-    create: {
-      id: playerId,
-      bankrollCents: DEFAULT_BANKROLL_CENTS,
-    },
-    select: {
-      id: true,
-      bankrollCents: true,
-      handsPlayed: true,
-      handsWon: true,
-      totalWagered: true,
-      biggestWin: true,
-    },
+    select: selectFields,
   });
 
-  return player;
+  if (existing) {
+    return existing;
+  }
+
+  // Try to create, handle race condition
+  try {
+    const player = await prisma.player.create({
+      data: {
+        id: playerId,
+        bankrollCents: DEFAULT_BANKROLL_CENTS,
+      },
+      select: selectFields,
+    });
+    return player;
+  } catch (error: unknown) {
+    // Handle race condition - another request created the player
+    if (error && typeof error === 'object' && 'code' in error && error.code === 'P2002') {
+      const player = await prisma.player.findUnique({
+        where: { id: playerId },
+        select: selectFields,
+      });
+      if (player) return player;
+    }
+    throw error;
+  }
 }
 
 /**
