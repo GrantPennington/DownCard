@@ -44,7 +44,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Apply the action
-    const roundState = applyAction(session, action, handIndex);
+    const roundState = await applyAction(session, action, handIndex);
 
     return NextResponse.json(roundState);
   } catch (error) {

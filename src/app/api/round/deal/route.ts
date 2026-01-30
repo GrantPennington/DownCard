@@ -43,7 +43,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Deal the round
-    const roundState = deal(session, betCents);
+    const roundState = await deal(session, betCents);
 
     return NextResponse.json(roundState);
   } catch (error) {

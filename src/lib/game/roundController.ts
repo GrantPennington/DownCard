@@ -15,7 +15,7 @@ import { recordHand, updatePlayerStats } from '@/lib/db';
 /**
  * Deal a new round
  */
-export function deal(session: GameSession, betCents: number): RoundState {
+export async function deal(session: GameSession, betCents: number): Promise<RoundState> {
   // Validate bet
   if (betCents < 100 || betCents > 10000) {
     throw new Error('Bet must be between 100 and 10000 cents');
@@ -70,7 +70,7 @@ export function deal(session: GameSession, betCents: number): RoundState {
   // If player has blackjack, proceed to dealer turn immediately
   if (playerBlackjack) {
     roundState.phase = 'DEALER_TURN';
-    return finalizeDealerTurn(session, roundState);
+    return await finalizeDealerTurn(session, roundState);
   }
 
   // Calculate legal actions
@@ -92,11 +92,11 @@ export function deal(session: GameSession, betCents: number): RoundState {
 /**
  * Apply a player action
  */
-export function applyAction(
+export async function applyAction(
   session: GameSession,
   action: Action,
   handIndex: number
-): RoundState {
+): Promise<RoundState> {
   if (!session.roundState) {
     throw new Error('No active round');
   }
@@ -122,15 +122,15 @@ export function applyAction(
 
   switch (action) {
     case 'HIT':
-      return handleHit(session, roundState, handIndex);
+      return await handleHit(session, roundState, handIndex);
     case 'STAND':
-      return handleStand(session, roundState, handIndex);
+      return await handleStand(session, roundState, handIndex);
     case 'DOUBLE':
-      return handleDouble(session, roundState, handIndex);
+      return await handleDouble(session, roundState, handIndex);
     case 'SPLIT':
-      return handleSplit(session, roundState, handIndex);
+      return await handleSplit(session, roundState, handIndex);
     case 'SURRENDER':
-      return handleSurrender(session, roundState, handIndex);
+      return await handleSurrender(session, roundState, handIndex);
     default:
       throw new Error(`Unsupported action: ${action}`);
   }
@@ -139,7 +139,7 @@ export function applyAction(
 /**
  * Handle HIT action
  */
-function handleHit(session: GameSession, roundState: RoundState, handIndex: number): RoundState {
+async function handleHit(session: GameSession, roundState: RoundState, handIndex: number): Promise<RoundState> {
   const hand = roundState.playerHands[handIndex];
 
   // Draw a card
@@ -156,7 +156,7 @@ function handleHit(session: GameSession, roundState: RoundState, handIndex: numb
   // Check for bust
   if (isBust(hand.cards)) {
     hand.status = 'BUST';
-    return advanceToNextHand(session, roundState);
+    return await advanceToNextHand(session, roundState);
   }
 
   // Recalculate legal actions
@@ -178,25 +178,25 @@ function handleHit(session: GameSession, roundState: RoundState, handIndex: numb
 /**
  * Handle STAND action
  */
-function handleStand(
+async function handleStand(
   session: GameSession,
   roundState: RoundState,
   handIndex: number
-): RoundState {
+): Promise<RoundState> {
   const hand = roundState.playerHands[handIndex];
   hand.status = 'STAND';
 
-  return advanceToNextHand(session, roundState);
+  return await advanceToNextHand(session, roundState);
 }
 
 /**
  * Handle DOUBLE action
  */
-function handleDouble(
+async function handleDouble(
   session: GameSession,
   roundState: RoundState,
   handIndex: number
-): RoundState {
+): Promise<RoundState> {
   const hand = roundState.playerHands[handIndex];
 
   // Deduct additional bet from bankroll
@@ -221,17 +221,17 @@ function handleDouble(
     hand.status = 'STAND';
   }
 
-  return advanceToNextHand(session, roundState);
+  return await advanceToNextHand(session, roundState);
 }
 
 /**
  * Handle SPLIT action
  */
-function handleSplit(
+async function handleSplit(
   session: GameSession,
   roundState: RoundState,
   handIndex: number
-): RoundState {
+): Promise<RoundState> {
   const hand = roundState.playerHands[handIndex];
 
   // Deduct additional bet from bankroll
@@ -289,7 +289,7 @@ function handleSplit(
 
   // If split aces, move to next hand immediately
   if (isSplitAces) {
-    return advanceToNextHand(session, roundState);
+    return await advanceToNextHand(session, roundState);
   }
 
   // Recalculate legal actions for current hand
@@ -311,11 +311,11 @@ function handleSplit(
 /**
  * Handle SURRENDER action
  */
-function handleSurrender(
+async function handleSurrender(
   session: GameSession,
   roundState: RoundState,
   handIndex: number
-): RoundState {
+): Promise<RoundState> {
   const hand = roundState.playerHands[handIndex];
 
   // Return half the bet
@@ -344,10 +344,8 @@ function handleSurrender(
   session.roundState = roundState;
   updateGameSession(session);
 
-  // Persist to database (async, fire-and-forget)
-  persistSurrender(session, roundState, hand).catch((err) =>
-    console.error('Failed to persist surrender:', err)
-  );
+  // Persist to database
+  await persistSurrender(session, roundState, hand);
 
   return roundState;
 }
@@ -384,7 +382,7 @@ async function persistSurrender(
 /**
  * Advance to next hand or dealer turn
  */
-function advanceToNextHand(session: GameSession, roundState: RoundState): RoundState {
+async function advanceToNextHand(session: GameSession, roundState: RoundState): Promise<RoundState> {
   // Check if all hands are done
   const allHandsDone = roundState.playerHands.every(
     (h) => h.status !== 'ACTIVE'
@@ -393,7 +391,7 @@ function advanceToNextHand(session: GameSession, roundState: RoundState): RoundS
   if (allHandsDone) {
     // Move to dealer turn
     roundState.phase = 'DEALER_TURN';
-    return finalizeDealerTurn(session, roundState);
+    return await finalizeDealerTurn(session, roundState);
   }
 
   // Move to next hand
@@ -420,7 +418,7 @@ function advanceToNextHand(session: GameSession, roundState: RoundState): RoundS
 /**
  * Finalize dealer turn and settlement
  */
-function finalizeDealerTurn(session: GameSession, roundState: RoundState): RoundState {
+async function finalizeDealerTurn(session: GameSession, roundState: RoundState): Promise<RoundState> {
   // Reveal hole card
   roundState.dealer.holeRevealed = true;
 
@@ -472,10 +470,8 @@ function finalizeDealerTurn(session: GameSession, roundState: RoundState): Round
   session.roundState = roundState;
   updateGameSession(session);
 
-  // Persist to database (async, fire-and-forget)
-  persistSettlement(session, roundState).catch((err) =>
-    console.error('Failed to persist settlement:', err)
-  );
+  // Persist to database
+  await persistSettlement(session, roundState);
 
   return roundState;
 }
