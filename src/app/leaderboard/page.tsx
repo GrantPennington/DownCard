@@ -14,10 +14,13 @@ type LeaderboardEntry = {
   handsPlayed: number;
 };
 
-type Category = 'biggestWin' | 'handsPlayed' | 'winRate' | 'totalWagered';
+type Category = 'biggestWin' | 'handsPlayed' | 'winRate' | 'totalWagered' | 'netProfit' | 'longestWinStreak' | 'blackjacks';
 
 const CATEGORIES: { key: Category; label: string; description: string }[] = [
   { key: 'biggestWin', label: 'Biggest Win', description: 'Largest single hand win' },
+  { key: 'netProfit', label: 'Net Profit', description: 'Lifetime earnings (profit minus losses)' },
+  { key: 'longestWinStreak', label: 'Win Streak', description: 'Longest consecutive wins' },
+  { key: 'blackjacks', label: 'Blackjacks', description: 'Most natural 21s hit' },
   { key: 'handsPlayed', label: 'Most Hands', description: 'Total hands played' },
   { key: 'winRate', label: 'Win Rate', description: 'Best win percentage (min 10 hands)' },
   { key: 'totalWagered', label: 'High Roller', description: 'Total amount wagered' },
@@ -131,6 +134,9 @@ export default function LeaderboardPage() {
                   <th className="px-4 py-3">Player</th>
                   <th className="px-4 py-3 text-right">
                     {category === 'biggestWin' && 'Biggest Win'}
+                    {category === 'netProfit' && 'Net Profit'}
+                    {category === 'longestWinStreak' && 'Win Streak'}
+                    {category === 'blackjacks' && 'Blackjacks'}
                     {category === 'handsPlayed' && 'Hands Played'}
                     {category === 'winRate' && 'Win Rate'}
                     {category === 'totalWagered' && 'Total Wagered'}

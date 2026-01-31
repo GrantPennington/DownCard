@@ -34,6 +34,18 @@ export async function GET() {
         winRate: `${winRate}%`,
         totalWageredCents: stats.totalWagered,
         biggestWinCents: stats.biggestWin,
+        // Detailed stats
+        blackjacks: stats.blackjacks,
+        doublesPlayed: stats.doublesPlayed,
+        doublesWon: stats.doublesWon,
+        splitsPlayed: stats.splitsPlayed,
+        splitsWon: stats.splitsWon,
+        pushes: stats.pushes,
+        longestWinStreak: stats.longestWinStreak,
+        longestLoseStreak: stats.longestLoseStreak,
+        currentStreak: stats.currentStreak,
+        biggestLossCents: stats.biggestLoss,
+        netProfitCents: stats.netProfit,
       },
       history: history.map((h) => ({
         id: h.id,

@@ -6,6 +6,9 @@ const VALID_CATEGORIES: LeaderboardCategory[] = [
   'handsPlayed',
   'winRate',
   'totalWagered',
+  'netProfit',
+  'longestWinStreak',
+  'blackjacks',
 ];
 
 export async function GET(request: NextRequest) {

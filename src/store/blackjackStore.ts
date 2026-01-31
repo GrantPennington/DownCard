@@ -44,7 +44,7 @@ export type BlackjackState = {
 };
 
 const MIN_BET = 100;
-const MAX_BET = 10000;
+const MAX_BET = 50000;
 
 export const useBlackjackStore = create<BlackjackState>((set, get) => ({
   // Initial state

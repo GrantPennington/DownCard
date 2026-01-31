@@ -125,12 +125,12 @@ describe('BlackjackStore', () => {
 
     test('rejects bet above maximum', async () => {
       useBlackjackStore.setState({
-        bankrollCents: 100000,
+        bankrollCents: 1000000, // $10k bankroll
       });
 
       const { deal } = useBlackjackStore.getState();
 
-      await deal(20000); // Above maximum of 10000
+      await deal(60000); // Above maximum of 50000 ($500)
 
       const state = useBlackjackStore.getState();
       expect(state.error).toContain('Bet must be between');

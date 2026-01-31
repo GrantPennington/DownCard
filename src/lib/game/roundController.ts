@@ -17,8 +17,8 @@ import { recordHand, updatePlayerStats } from '@/lib/db';
  */
 export async function deal(session: GameSession, betCents: number): Promise<RoundState> {
   // Validate bet
-  if (betCents < 100 || betCents > 10000) {
-    throw new Error('Bet must be between 100 and 10000 cents');
+  if (betCents < 100 || betCents > 50000) {
+    throw new Error('Bet must be between 100 and 50000 cents');
   }
 
   if (betCents > session.bankrollCents) {
@@ -376,7 +376,15 @@ async function persistSurrender(
     wasSplit: false,
   });
 
-  await updatePlayerStats(session.playerId, hand.betCents, -halfBet, false);
+  await updatePlayerStats(session.playerId, {
+    betCents: hand.betCents,
+    netResultCents: -halfBet,
+    isWin: false,
+    isPush: false,
+    isBlackjack: false,
+    isDouble: false,
+    isSplit: false,
+  });
 }
 
 /**
@@ -498,6 +506,10 @@ async function persistSettlement(
     const hand = roundState.playerHands[i];
     const isWin = result.result === 'WIN' || result.result === 'BJ';
 
+    const isBlackjack = result.result === 'BJ';
+    const isPush = result.result === 'PUSH';
+    const isDouble = hand.cards.length === 3 && hand.betCents > roundState.baseBetCents;
+
     await recordHand({
       playerId: session.playerId,
       betCents: hand.betCents,
@@ -507,17 +519,20 @@ async function persistSettlement(
       dealerCards: roundState.dealer.cards,
       playerTotal: hand.total,
       dealerTotal,
-      wasBlackjack: result.result === 'BJ',
-      wasDouble: hand.cards.length === 3 && hand.betCents > roundState.baseBetCents,
+      wasBlackjack: isBlackjack,
+      wasDouble: isDouble,
       wasSplit: hasSplit,
     });
 
     // Update player stats
-    await updatePlayerStats(
-      session.playerId,
-      hand.betCents,
-      result.netPayoutCents,
-      isWin
-    );
+    await updatePlayerStats(session.playerId, {
+      betCents: hand.betCents,
+      netResultCents: result.netPayoutCents,
+      isWin,
+      isPush,
+      isBlackjack,
+      isDouble,
+      isSplit: hasSplit,
+    });
   }
 }

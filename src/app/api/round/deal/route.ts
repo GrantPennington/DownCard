@@ -5,7 +5,7 @@ import { getOrCreateGameSession } from '@/lib/game';
 import { deal } from '@/lib/game/roundController';
 
 const DealRequestSchema = z.object({
-  betCents: z.number().int().min(100).max(10000),
+  betCents: z.number().int().min(100).max(50000),
 });
 
 /**

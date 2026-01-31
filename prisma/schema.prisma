@@ -24,6 +24,23 @@ model Player {
   totalWagered Int @default(0) // in cents
   biggestWin   Int @default(0) // in cents
 
+  // Gameplay stats
+  blackjacks     Int @default(0)
+  doublesPlayed  Int @default(0)
+  doublesWon     Int @default(0)
+  splitsPlayed   Int @default(0)
+  splitsWon      Int @default(0)
+  pushes         Int @default(0)
+
+  // Streak stats
+  longestWinStreak  Int @default(0)
+  longestLoseStreak Int @default(0)
+  currentStreak     Int @default(0) // positive = wins, negative = losses
+
+  // Financial stats
+  biggestLoss Int @default(0) // in cents (stored as positive)
+  netProfit   Int @default(0) // in cents (can be negative)
+
   // Relations
   handHistory  HandHistory[]
   gameSessions GameSession[]

@@ -13,6 +13,18 @@ type Stats = {
   winRate: string;
   totalWageredCents: number;
   biggestWinCents: number;
+  // Detailed stats
+  blackjacks: number;
+  doublesPlayed: number;
+  doublesWon: number;
+  splitsPlayed: number;
+  splitsWon: number;
+  pushes: number;
+  longestWinStreak: number;
+  longestLoseStreak: number;
+  currentStreak: number;
+  biggestLossCents: number;
+  netProfitCents: number;
 };
 
 type HistoryEntry = {
@@ -34,6 +46,7 @@ export default function StatsPage() {
   const [playerId, setPlayerId] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [showDetails, setShowDetails] = useState(false);
 
   useEffect(() => {
     async function fetchStats() {
@@ -105,7 +118,7 @@ export default function StatsPage() {
         ) : (
           <>
             {/* Stats Grid */}
-            <div className="grid grid-cols-2 md:grid-cols-3 gap-4 mb-8">
+            <div className="grid grid-cols-2 md:grid-cols-3 gap-4 mb-4">
               <StatCard label="Bankroll" value={formatCents(stats.bankrollCents)} highlight />
               <StatCard label="Hands Played" value={stats.handsPlayed.toLocaleString()} />
               <StatCard label="Hands Won" value={stats.handsWon.toLocaleString()} />
@@ -113,6 +126,85 @@ export default function StatsPage() {
               <StatCard label="Total Wagered" value={formatCents(stats.totalWageredCents)} />
               <StatCard label="Biggest Win" value={formatCents(stats.biggestWinCents)} highlight />
             </div>
+
+            {/* Detailed Stats Toggle */}
+            <button
+              onClick={() => setShowDetails(!showDetails)}
+              className="w-full mb-8 px-4 py-3 bg-gray-800 hover:bg-gray-750 rounded-xl flex items-center justify-between text-gray-300 hover:text-white transition-colors"
+            >
+              <span className="font-medium">Detailed Stats</span>
+              <svg
+                className={`w-5 h-5 transition-transform ${showDetails ? 'rotate-180' : ''}`}
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+              </svg>
+            </button>
+
+            {/* Detailed Stats Sections */}
+            {showDetails && (
+              <div className="mb-8 space-y-6">
+                {/* Gameplay Stats */}
+                <div className="bg-gray-800 rounded-xl p-4">
+                  <h3 className="text-lg font-semibold text-white mb-3">Gameplay</h3>
+                  <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                    <MiniStatCard label="Blackjacks" value={stats.blackjacks.toString()} />
+                    <MiniStatCard
+                      label="Doubles"
+                      value={`${stats.doublesWon}/${stats.doublesPlayed}`}
+                      subtext="won"
+                    />
+                    <MiniStatCard
+                      label="Splits"
+                      value={`${stats.splitsWon}/${stats.splitsPlayed}`}
+                      subtext="won"
+                    />
+                    <MiniStatCard label="Pushes" value={stats.pushes.toString()} />
+                  </div>
+                </div>
+
+                {/* Streak Stats */}
+                <div className="bg-gray-800 rounded-xl p-4">
+                  <h3 className="text-lg font-semibold text-white mb-3">Streaks</h3>
+                  <div className="grid grid-cols-3 gap-3">
+                    <MiniStatCard
+                      label="Current"
+                      value={stats.currentStreak > 0 ? `+${stats.currentStreak}` : stats.currentStreak.toString()}
+                      color={stats.currentStreak > 0 ? 'text-green-400' : stats.currentStreak < 0 ? 'text-red-400' : undefined}
+                    />
+                    <MiniStatCard
+                      label="Best Win Streak"
+                      value={stats.longestWinStreak.toString()}
+                      color="text-green-400"
+                    />
+                    <MiniStatCard
+                      label="Worst Lose Streak"
+                      value={stats.longestLoseStreak.toString()}
+                      color="text-red-400"
+                    />
+                  </div>
+                </div>
+
+                {/* Financial Stats */}
+                <div className="bg-gray-800 rounded-xl p-4">
+                  <h3 className="text-lg font-semibold text-white mb-3">Financial</h3>
+                  <div className="grid grid-cols-2 gap-3">
+                    <MiniStatCard
+                      label="Net Profit"
+                      value={`${stats.netProfitCents >= 0 ? '+' : ''}${formatCents(stats.netProfitCents)}`}
+                      color={stats.netProfitCents >= 0 ? 'text-green-400' : 'text-red-400'}
+                    />
+                    <MiniStatCard
+                      label="Biggest Loss"
+                      value={formatCents(stats.biggestLossCents)}
+                      color="text-red-400"
+                    />
+                  </div>
+                </div>
+              </div>
+            )}
 
             {/* Hand History */}
             <div className="bg-gray-800 rounded-xl overflow-hidden">
@@ -210,6 +302,18 @@ function StatCard({ label, value, highlight = false }: { label: string; value: s
       <div className="text-sm text-gray-400 mb-1">{label}</div>
       <div className={`text-2xl font-bold ${highlight ? 'text-green-400' : 'text-white'}`}>
         {value}
+      </div>
+    </div>
+  );
+}
+
+function MiniStatCard({ label, value, subtext, color }: { label: string; value: string; subtext?: string; color?: string }) {
+  return (
+    <div className="bg-gray-700/50 rounded-lg p-3">
+      <div className="text-xs text-gray-400 mb-1">{label}</div>
+      <div className={`text-lg font-bold ${color || 'text-white'}`}>
+        {value}
+        {subtext && <span className="text-xs font-normal text-gray-400 ml-1">{subtext}</span>}
       </div>
     </div>
   );

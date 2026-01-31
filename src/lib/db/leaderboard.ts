@@ -1,6 +1,6 @@
 import { prisma } from './prisma';
 
-export type LeaderboardCategory = 'biggestWin' | 'handsPlayed' | 'winRate' | 'totalWagered';
+export type LeaderboardCategory = 'biggestWin' | 'handsPlayed' | 'winRate' | 'totalWagered' | 'netProfit' | 'longestWinStreak' | 'blackjacks';
 
 export type LeaderboardEntry = {
   rank: number;
@@ -40,6 +40,12 @@ export async function getLeaderboard(
       return getWinRateLeaderboard();
     case 'totalWagered':
       return getTotalWageredLeaderboard();
+    case 'netProfit':
+      return getNetProfitLeaderboard();
+    case 'longestWinStreak':
+      return getLongestWinStreakLeaderboard();
+    case 'blackjacks':
+      return getBlackjacksLeaderboard();
     default:
       return [];
   }
@@ -140,6 +146,75 @@ async function getTotalWageredLeaderboard(): Promise<LeaderboardEntry[]> {
     displayName: formatPlayerName(p.id, p.displayName),
     value: p.totalWagered,
     formattedValue: `$${(p.totalWagered / 100).toLocaleString()}`,
+    handsPlayed: p.handsPlayed,
+  }));
+}
+
+async function getNetProfitLeaderboard(): Promise<LeaderboardEntry[]> {
+  const players = await prisma!.player.findMany({
+    where: { handsPlayed: { gt: 0 } },
+    orderBy: { netProfit: 'desc' },
+    take: LEADERBOARD_LIMIT,
+    select: {
+      id: true,
+      displayName: true,
+      netProfit: true,
+      handsPlayed: true,
+    },
+  });
+
+  return players.map((p, i) => ({
+    rank: i + 1,
+    playerId: p.id,
+    displayName: formatPlayerName(p.id, p.displayName),
+    value: p.netProfit,
+    formattedValue: `${p.netProfit >= 0 ? '+' : ''}$${(p.netProfit / 100).toLocaleString()}`,
+    handsPlayed: p.handsPlayed,
+  }));
+}
+
+async function getLongestWinStreakLeaderboard(): Promise<LeaderboardEntry[]> {
+  const players = await prisma!.player.findMany({
+    where: { longestWinStreak: { gt: 0 } },
+    orderBy: { longestWinStreak: 'desc' },
+    take: LEADERBOARD_LIMIT,
+    select: {
+      id: true,
+      displayName: true,
+      longestWinStreak: true,
+      handsPlayed: true,
+    },
+  });
+
+  return players.map((p, i) => ({
+    rank: i + 1,
+    playerId: p.id,
+    displayName: formatPlayerName(p.id, p.displayName),
+    value: p.longestWinStreak,
+    formattedValue: `${p.longestWinStreak} wins`,
+    handsPlayed: p.handsPlayed,
+  }));
+}
+
+async function getBlackjacksLeaderboard(): Promise<LeaderboardEntry[]> {
+  const players = await prisma!.player.findMany({
+    where: { blackjacks: { gt: 0 } },
+    orderBy: { blackjacks: 'desc' },
+    take: LEADERBOARD_LIMIT,
+    select: {
+      id: true,
+      displayName: true,
+      blackjacks: true,
+      handsPlayed: true,
+    },
+  });
+
+  return players.map((p, i) => ({
+    rank: i + 1,
+    playerId: p.id,
+    displayName: formatPlayerName(p.id, p.displayName),
+    value: p.blackjacks,
+    formattedValue: p.blackjacks.toLocaleString(),
     handsPlayed: p.handsPlayed,
   }));
 }
